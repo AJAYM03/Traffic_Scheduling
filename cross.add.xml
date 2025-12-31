@@ -1,0 +1,33 @@
+<additionals>
+    <laneAreaDetector id="e2_N0" lane="N_in_0" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_N1" lane="N_in_1" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_S0" lane="S_in_0" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_S1" lane="S_in_1" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_E0" lane="E_in_0" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_E1" lane="E_in_1" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_W0" lane="W_in_0" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+    <laneAreaDetector id="e2_W1" lane="W_in_1" pos="-100" length="100" freq="60" file="waiting_time.xml"/>
+
+    <tlLogic id="C" type="static" programID="1" offset="0">
+        <phase duration="9999" state="GGGGGrrrrrrrrrrrrrrr" name="North_Go"/>
+        <phase duration="3"  state="yyyyyrrrrrrrrrrrrrrr" name="North_Yellow"/>
+        
+        <phase duration="9999" state="rrrrrGGGGGrrrrrrrrrr" name="South_Go"/>
+        <phase duration="3"  state="rrrrryyyyyrrrrrrrrrr" name="South_Yellow"/>
+
+        <phase duration="9999" state="rrrrrrrrrrGGGGGrrrrr" name="East_Go"/>
+        <phase duration="3"  state="rrrrrrrrrryyyyyrrrrr" name="East_Yellow"/>
+        
+        <phase duration="9999" state="rrrrrrrrrrrrrrrGGGGG" name="West_Go"/>
+        <phase duration="3"  state="rrrrrrrrrrrrrrryyyyy" name="West_Yellow"/>
+    </tlLogic>
+
+    <inductionLoop id="det_N0" lane="N_in_0" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_N1" lane="N_in_1" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_S0" lane="S_in_0" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_S1" lane="S_in_1" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_E0" lane="E_in_0" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_E1" lane="E_in_1" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_W0" lane="W_in_0" pos="-50" freq="60" file="detector_output.xml"/>
+    <inductionLoop id="det_W1" lane="W_in_1" pos="-50" freq="60" file="detector_output.xml"/>
+</additionals>

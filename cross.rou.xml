@@ -1,0 +1,24 @@
+<routes>
+    <vType id="car" accel="2.6" decel="4.5" sigma="0.5" length="5.0" minGap="2.5" maxSpeed="13.9" guiShape="passenger"/>
+
+    <route id="W_S" edges="W_in E_out"/> <route id="W_L" edges="W_in N_out"/> <route id="W_R" edges="W_in S_out"/>
+    <route id="E_S" edges="E_in W_out"/> <route id="E_L" edges="E_in S_out"/> <route id="E_R" edges="E_in N_out"/>
+    <route id="S_S" edges="S_in N_out"/> <route id="S_L" edges="S_in E_out"/> <route id="S_R" edges="S_in W_out"/>
+    <route id="N_S" edges="N_in S_out"/> <route id="N_L" edges="N_in W_out"/> <route id="N_R" edges="N_in E_out"/>
+
+    <flow id="f_W" type="car" route="W_S" begin="0" end="3600" vehsPerHour="200"/>
+    <flow id="f_W_L" type="car" route="W_L" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_W_R" type="car" route="W_R" begin="0" end="3600" vehsPerHour="50"/>
+
+    <flow id="f_E" type="car" route="E_S" begin="0" end="3600" vehsPerHour="200"/>
+    <flow id="f_E_L" type="car" route="E_L" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_E_R" type="car" route="E_R" begin="0" end="3600" vehsPerHour="50"/>
+
+    <flow id="f_S" type="car" route="S_S" begin="0" end="3600" vehsPerHour="200"/>
+    <flow id="f_S_L" type="car" route="S_L" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_S_R" type="car" route="S_R" begin="0" end="3600" vehsPerHour="50"/>
+
+    <flow id="f_N" type="car" route="N_S" begin="0" end="3600" vehsPerHour="200"/>
+    <flow id="f_N_L" type="car" route="N_L" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_N_R" type="car" route="N_R" begin="0" end="3600" vehsPerHour="50"/>
+</routes>

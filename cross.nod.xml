@@ -1,0 +1,8 @@
+<nodes>
+    <node id="N_West"  x="-500" y="0"    type="priority"/> 
+    <node id="N_East"  x="500"  y="0"    type="priority"/>
+    <node id="N_South" x="0"     y="-500" type="priority"/> 
+    <node id="N_North" x="0"     y="500"  type="priority"/>
+    
+    <node id="C" x="0" y="0" type="traffic_light"/> 
+</nodes>
