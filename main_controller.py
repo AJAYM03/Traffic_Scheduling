@@ -14,8 +14,6 @@ else:
     sys.exit("Please declare environment variable 'SUMO_HOME'")
 
 # --- MAPPINGS (Fixed for cross.net.xml) ---
-# Phase 0 = North + South Green
-# Phase 2 = East + West Green
 LANES_BY_PHASE = {
     0: ["N_in_0", "N_in_1", "S_in_0", "S_in_1"], 
     2: ["E_in_0", "E_in_1", "W_in_0", "W_in_1"]
@@ -26,8 +24,6 @@ ALL_LANES = ["N_in_0", "N_in_1", "S_in_0", "S_in_1", "E_in_0", "E_in_1", "W_in_0
 
 def get_next_smart_phase(lane_data_map, current_phase):
     """Decides which phase to switch to based on queues."""
-    # Since we only have 2 phases (0 and 2), we just toggle.
-    # If currently 0 (NS), go 2 (EW). If currently 2 (EW), go 0 (NS).
     if current_phase == 0:
         return 2
     else:
@@ -40,7 +36,7 @@ def main():
 
     # Start SUMO
     traci.start(config.SUMO_CMD)
-    traci.trafficlight.setProgram(config.TLS_ID, "0") # Use program 0 from your XML
+    traci.trafficlight.setProgram(config.TLS_ID, "0") 
     
     # --- Simulation State Variables ---
     step = 0
@@ -51,6 +47,9 @@ def main():
     yellow_timer = 0     # Tracks how long to stay in Yellow
     next_phase_buffer = -1 # Stores the upcoming green phase during yellow
     
+    # DEADLOCK FIX: Flag to ensure we act after waking up
+    just_woke_up = False 
+
     # Set initial phase to North/South Green
     traci.trafficlight.setPhase(config.TLS_ID, current_phase)
 
@@ -58,7 +57,6 @@ def main():
         traci.simulationStep()
         step += 1
         
-        # --- LOGIC 1: HANDLE COMPUTATION DELAY ---
         # --- LOGIC 1: HANDLE COMPUTATION DELAY ---
         if reaction_delay > 0:
             reaction_delay -= 1
@@ -75,7 +73,11 @@ def main():
             else:
                 phase_timer += 1
             
-            continue
+            # DEADLOCK FIX: If delay just finished, mark as awake so we don't think again immediately
+            if reaction_delay == 0:
+                just_woke_up = True
+            
+            continue 
 
         # --- LOGIC 2: HANDLE YELLOW TRANSITION ---
         if yellow_timer > 0:
@@ -105,13 +107,20 @@ def main():
 
         # --- STEP B: FOG SCHEDULING ---
         if current_tasks:
-            scheduler = QIGA(current_tasks, fog_nodes)
-            _, processing_latency = scheduler.run()
-            
-            # Apply processing delay
-            calculated_delay = int(processing_latency * config.LATENCY_TO_STEPS_FACTOR)
-            if calculated_delay > 0:
-                reaction_delay = calculated_delay
+            # DEADLOCK FIX: If we just woke up from a delay, SKIP scheduling.
+            # We must force a decision now based on the queue that built up.
+            if just_woke_up:
+                just_woke_up = False # Reset flag and fall through to Step C
+            else:
+                scheduler = QIGA(current_tasks, fog_nodes)
+                _, processing_latency = scheduler.run()
+                
+                calculated_delay = int(processing_latency * config.LATENCY_TO_STEPS_FACTOR)
+                
+                # TIME MACHINE FIX: Start delay now and skip decision
+                if calculated_delay > 0:
+                    reaction_delay = calculated_delay
+                    continue
 
         # --- STEP C: DECISION MAKING ---
         # 1. Get queues for current Green side
@@ -134,7 +143,7 @@ def main():
             elif active_queue <= config.QUEUE_THRESHOLD:
                 switch_needed = True
             # Rule 3: Pressure (Other side has much more traffic)
-            elif other_queue > (active_queue + 2): # Added buffer of 2 cars to prevent flickering
+            elif other_queue > (active_queue + 2): 
                 switch_needed = True
 
         # --- STEP D: ACTUATION (Start Yellow) ---
@@ -143,8 +152,6 @@ def main():
             next_green = get_next_smart_phase(lane_data_map, current_phase)
             
             # 2. Trigger Yellow Phase
-            # In your XML: Phase 0 (Green) -> Phase 1 (Yellow)
-            #              Phase 2 (Green) -> Phase 3 (Yellow)
             yellow_phase_index = current_phase + 1 
             
             traci.trafficlight.setPhase(config.TLS_ID, yellow_phase_index)

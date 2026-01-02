@@ -36,7 +36,7 @@ def main():
     sumo_cmd.extend(["--tripinfo-output", "tripinfo_BASELINE.xml"])
     
     traci.start(sumo_cmd)
-    traci.trafficlight.setProgram(config.TLS_ID, "0") # Corrected Program ID
+    traci.trafficlight.setProgram(config.TLS_ID, "0") 
     
     # --- State Variables ---
     step = 0
@@ -44,9 +44,12 @@ def main():
     phase_timer = 0
     
     reaction_delay = 0 
-    yellow_timer = 0      # New variable for Yellow State
-    next_phase_buffer = -1 # Buffer for transition
+    yellow_timer = 0      
+    next_phase_buffer = -1 
     
+    # DEADLOCK FIX: Flag to ensure we act after waking up
+    just_woke_up = False
+
     traci.trafficlight.setPhase(config.TLS_ID, current_phase)
 
     while step < config.STEPS_TO_RUN:
@@ -68,9 +71,13 @@ def main():
                     next_phase_buffer = -1
             else:
                 phase_timer += 1
+                
+            # DEADLOCK FIX: If delay just finished, mark as awake
+            if reaction_delay == 0:
+                just_woke_up = True
             
-            continue
-        
+            continue 
+
         # --- LOGIC 2: YELLOW TRANSITION ---
         if yellow_timer > 0:
             yellow_timer -= 1
@@ -95,14 +102,22 @@ def main():
                 current_tasks.append(Task(lane, q_len, w_time))
 
         # --- ROUND ROBIN SCHEDULING (The "Dumb" Logic) ---
+        # --- STEP B: FOG SCHEDULING ---
         if current_tasks:
-            scheduler = RoundRobin(current_tasks, fog_nodes)
-            _, processing_latency = scheduler.run()
-            
-            # This latency will be higher/more variable than QIGA
-            calculated_delay = int(processing_latency * config.LATENCY_TO_STEPS_FACTOR)
-            if calculated_delay > 0:
-                reaction_delay = calculated_delay
+            # DEADLOCK FIX: If we just woke up from a delay, SKIP scheduling.
+            if just_woke_up:
+                just_woke_up = False # Reset flag and fall through to Step C
+            else:
+                scheduler = RoundRobin(current_tasks, fog_nodes) 
+                _, processing_latency = scheduler.run()
+                
+                # Apply processing delay
+                calculated_delay = int(processing_latency * config.LATENCY_TO_STEPS_FACTOR)
+                
+                # TIME MACHINE FIX: Start delay now and skip decision
+                if calculated_delay > 0:
+                    reaction_delay = calculated_delay
+                    continue
 
         # --- DECISION MAKING ---
         active_lanes = LANES_BY_PHASE[current_phase]
